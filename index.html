@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JAL - 入力ビューア</title>
+<script src="config.js"></script>
+<style>
+:root {
+    --sidebar-width: 200px;
+    --header-height: 70px;
+
+    --jal-dark-red: #5a1005;
+    --jal-gold: #b8860b;
+    --jal-black: #000000;
+    --jal-silver: #c0c0c0;
+    --jal-bg: #f3f3f3;
+    --jal-white: #ffffff;
+    --jal-text: #333333;
+    --jal-border: #d9d9d9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Segoe UI", "Yu Gothic UI", Arial, sans-serif;
+    background: var(--jal-bg);
+}
+
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    padding: var(--header-height) 10px 10px 10px;
+    background: var(--jal-bg);
+    border-right: 3px solid var(--jal-gold);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.sidebar button {
+    padding: 10px 12px;
+    border: 2px solid var(--jal-black);
+    border-radius: 6px;
+    background: var(--jal-dark-red);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.sidebar button:hover {
+    background: var(--jal-silver);
+    color: var(--jal-dark-red);
+    border-color: var(--jal-gold);
+    transform: translateX(3px);
+}
+
+.content {
+    flex: 1;
+    position: relative;
+    background: var(--jal-bg);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.top-controls {
+    height: var(--header-height);
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    align-items: center;
+    padding: 0 20px;
+    background: var(--jal-bg);
+    border-bottom: 2px solid var(--jal-gold);
+    z-index: 9999;
+    flex-wrap: wrap;
+}
+
+.mode-btn {
+    padding: 10px 18px;
+    min-width: 170px;
+    border: 1px solid var(--jal-border);
+    border-radius: 6px;
+    background: var(--jal-white);
+    color: var(--jal-text);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mode-btn:hover {
+    background: var(--jal-dark-red);
+    color: var(--jal-white);
+    border-color: var(--jal-dark-red);
+}
+
+.mode-btn.active {
+    background: var(--jal-dark-red);
+    color: var(--jal-white);
+    border-color: var(--jal-dark-red);
+    box-shadow: 0 3px 10px rgba(133, 32, 12, 0.25);
+}
+
+.print-btn {
+    padding: 10px 14px;
+    border: 1px solid #555555;
+    border-radius: 6px;
+    background: #555555;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.print-btn:hover {
+    background: #1a73e8;
+    border-color: #1a73e8;
+    box-shadow: 0 0 10px rgba(26, 115, 232, 0.3);
+}
+
+#viewer {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: var(--jal-white);
+    min-height: 0;
+}
+
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: var(--jal-text);
+    z-index: 1;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <button onclick="openSheet('1023024767')">🧭 DLCSO入力</button>
+        <button onclick="openSheet('146794176')">📦 DLCFFU入力</button>
+        <button onclick="openPage('pti_today.html')">🧳 DLCPTI当日入力</button>
+        <button onclick="openPage('pti_next.html')">🧳 DLCPTI翌日入力</button>
+        <button onclick="openSheet('1797472086')">🛠️ DLCKKM入力</button>
+        <button onclick="openSheet('37366441')">👥 代表MGR入力</button>
+    </div>
+
+    <div class="content">
+        <div class="top-controls">
+            <button class="mode-btn active" onclick="switchMode('memo', this)">📅 FLT HDLG MEMO(当日)</button>
+            <button class="mode-btn" onclick="switchMode('brief', this)">📋 DE-BRIEFING NOTE</button>
+            <button class="mode-btn" onclick="switchMode('next', this)">📅 FLT HDLG MEMO(翌日)</button>
+            <button class="print-btn" onclick="printCurrent()">🖨️ 印刷</button>
+        </div>
+        <div class="loading" id="loading">読み込み中...</div>
+        <iframe id="viewer" title="Google Sheet Viewer"></iframe>
+    </div>
+</div>
+
+<script>
+const spreadsheetId = CONFIG.spreadsheetId;
+const modes = CONFIG.modes;
+
+let currentMode = "memo";
+
+// 直接打开 Google Sheets 编辑页面（新标签页）
+function openSheet(gid) {
+    const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit?pli=1&gid=${gid}#gid=${gid}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+
+// 跳转到独立页面（新标签页）
+function openPage(url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function getCleanUrl(gid) {
+    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/htmlembed?gid=${gid}&widget=true&chrome=false&single=true&headers=false`;
+}
+
+function getEditUrl(gid) {
+    return `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit?gid=${gid}#gid=${gid}`;
+}
+
+function switchMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    
+    const viewer = document.getElementById("viewer");
+    const loading = document.getElementById("loading");
+    
+    loading.style.display = "block";
+    viewer.src = getCleanUrl(modes[mode]);
+    
+    viewer.onload = function() {
+        loading.style.display = "none";
+    };
+}
+
+function printCurrent() {
+    const url = getEditUrl(modes[currentMode]);
+    window.open(url, "_blank", "noopener,noreferrer");
+}
+
+window.onload = function() {
+    const viewer = document.getElementById("viewer");
+    const loading = document.getElementById("loading");
+    
+    viewer.src = getCleanUrl(modes[currentMode]);
+    
+    viewer.onload = function() {
+        loading.style.display = "none";
+    };
+};
+</script>
+</body>
+</html>

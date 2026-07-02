@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DLCFFU入力</title>
+<script src="config.js"></script>
+<style>
+:root {
+    --jal-dark-red: #5a1005;
+    --jal-gold: #b8860b;
+    --jal-black: #000000;
+    --jal-silver: #c0c0c0;
+    --jal-bg: #f3f3f3;
+    --jal-white: #ffffff;
+    --jal-text: #333333;
+    --jal-border: #d9d9d9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Segoe UI", "Yu Gothic UI", Arial, sans-serif;
+    background: var(--jal-bg);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+}
+
+.top-bar {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--jal-bg);
+    border-bottom: 3px solid var(--jal-gold);
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mode-btn {
+    padding: 10px 18px;
+    min-width: 170px;
+    border: 1px solid var(--jal-border);
+    border-radius: 6px;
+    background: var(--jal-white);
+    color: var(--jal-text);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mode-btn:hover {
+    background: var(--jal-dark-red);
+    color: var(--jal-white);
+    border-color: var(--jal-dark-red);
+}
+
+.mode-btn.active {
+    background: var(--jal-dark-red);
+    color: var(--jal-white);
+    border-color: var(--jal-dark-red);
+    box-shadow: 0 3px 10px rgba(133, 32, 12, 0.25);
+}
+
+.edit-btn {
+    padding: 12px 20px;
+    border: 2px solid #1a73e8;
+    border-radius: 6px;
+    background: #1a73e8;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+    background: #1557b0;
+    border-color: #1557b0;
+    box-shadow: 0 0 10px rgba(26, 115, 232, 0.3);
+}
+
+.back-btn {
+    padding: 10px 16px;
+    border: 1px solid #555555;
+    border-radius: 6px;
+    background: #555555;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: #1a73e8;
+    border-color: #1a73e8;
+}
+
+#viewer {
+    flex: 1;
+    width: 100%;
+    border: none;
+    background: var(--jal-white);
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="top-bar">
+        <button class="mode-btn active" onclick="switchMode('memo', this)">📅 FLT HDLG MEMO(当日)</button>
+        <button class="mode-btn" onclick="switchMode('brief', this)">📋 DE-BRIEFING NOTE</button>
+        <button class="mode-btn" onclick="switchMode('next', this)">📅 FLT HDLG MEMO(翌日)</button>
+        <button class="edit-btn" onclick="openEdit()">📝 編集</button>
+        <button class="back-btn" onclick="goBack()">← 戻る</button>
+    </div>
+    <iframe id="viewer" title="Google Sheet Viewer"></iframe>
+</div>
+
+<script>
+const departmentKey = "ffu";
+const spreadsheetId = CONFIG.spreadsheetId;
+const dept = CONFIG.departments[departmentKey];
+const driveUrl = CONFIG.driveUrl;
+const modes = CONFIG.modes;
+
+let currentMode = "memo";
+
+document.title = dept.title;
+
+function switchMode(mode, btn) {
+    currentMode = mode;
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    
+    const viewer = document.getElementById("viewer");
+    viewer.src = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/htmlembed?gid=${modes[mode]}&widget=true&chrome=false&single=true&headers=false`;
+}
+
+function openEdit() {
+    const editUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit?gid=${modes[currentMode]}#gid=${modes[currentMode]}`;
+    window.open(editUrl, "_blank", "noopener,noreferrer");
+}
+
+function goBack() {
+    window.location.href = "index.html";
+}
+
+window.onload = function() {
+    const viewer = document.getElementById("viewer");
+    viewer.src = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/htmlembed?gid=${modes[currentMode]}&widget=true&chrome=false&single=true&headers=false`;
+};
+</script>
+</body>
+</html>
