@@ -7,7 +7,7 @@
 <script src="config.js"></script>
 <style>
 :root {
-    --sidebar-width: 280px;
+    --sidebar-width: 200px;
     --header-height: 70px;
 
     --jal-dark-red: #5a1005;
@@ -69,100 +69,6 @@ html, body {
     color: var(--jal-dark-red);
     border-color: var(--jal-gold);
     transform: translateX(3px);
-}
-
-.info-section {
-    margin-top: 15px;
-    padding: 10px;
-    background: var(--jal-white);
-    border: 2px solid var(--jal-gold);
-    border-radius: 6px;
-}
-
-.info-section h3 {
-    font-size: 13px;
-    color: var(--jal-dark-red);
-    margin-bottom: 8px;
-    font-weight: 700;
-}
-
-.auto-query-btn {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #1a73e8;
-    border-radius: 6px;
-    background: #1a73e8;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 10px;
-}
-
-.auto-query-btn:hover {
-    background: #1557b0;
-    border-color: #1557b0;
-    box-shadow: 0 0 10px rgba(26, 115, 232, 0.3);
-}
-
-.auto-query-btn:disabled {
-    background: #cccccc;
-    border-color: #cccccc;
-    cursor: not-allowed;
-}
-
-.input-group {
-    margin-bottom: 10px;
-}
-
-.input-group label {
-    display: block;
-    font-size: 12px;
-    color: var(--jal-text);
-    margin-bottom: 4px;
-    font-weight: 600;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 6px 8px;
-    border: 1px solid var(--jal-border);
-    border-radius: 4px;
-    font-size: 13px;
-}
-
-.query-btn {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid var(--jal-dark-red);
-    border-radius: 4px;
-    background: var(--jal-dark-red);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.query-btn:hover {
-    background: var(--jal-gold);
-    border-color: var(--jal-gold);
-}
-
-.result-display {
-    margin-top: 10px;
-    padding: 8px;
-    background: #f9f9f9;
-    border: 1px solid var(--jal-border);
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--jal-text);
-    min-height: 60px;
-    max-height: 200px;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    line-height: 1.6;
 }
 
 .content {
@@ -256,28 +162,12 @@ html, body {
 <body>
 <div class="container">
     <div class="sidebar">
-        <button onclick="openSheet('so')">🧭 DLCSO入力</button>
-        <button onclick="openSheet('ffu')">📦 DLCFFU入力</button>
+        <button onclick="openSheet('1023024767')">🧭 DLCSO入力</button>
+        <button onclick="openSheet('146794176')">📦 DLCFFU入力</button>
         <button onclick="openPage('pti_today.html')">🧳 DLCPTI当日入力</button>
         <button onclick="openPage('pti_next.html')">🧳 DLCPTI翌日入力</button>
-        <button onclick="openSheet('kkm')">🛠️ DLCKKM入力</button>
-        <button onclick="openSheet('mgr')">👥 代表MGR入力</button>
-        
-        <div class="info-section">
-            <h3>🔍 情報検索</h3>
-            <button class="auto-query-btn" id="autoQueryBtn" onclick="autoQuery()">📥 自動読取＆検索</button>
-            
-            <div class="input-group">
-                <label for="dlyCodeInput">DLY CODE (E6):</label>
-                <input type="text" id="dlyCodeInput" placeholder="例: 05AT/01AF">
-            </div>
-            <div class="input-group">
-                <label for="aircraftInput">機材番号 (D5):</label>
-                <input type="text" id="aircraftInput" placeholder="例: JA821J">
-            </div>
-            <button class="query-btn" onclick="queryInfo()">🔍 検索</button>
-            <div class="result-display" id="resultDisplay">検索結果がここに表示されます</div>
-        </div>
+        <button onclick="openSheet('1797472086')">🛠️ DLCKKM入力</button>
+        <button onclick="openSheet('37366441')">👥 代表MGR入力</button>
     </div>
 
     <div class="content">
@@ -295,27 +185,16 @@ html, body {
 <script>
 const spreadsheetId = CONFIG.spreadsheetId;
 const modes = CONFIG.modes;
-const departments = CONFIG.departments;
-
-// DLY CODE对照表URL
-const DLY_CODE_SHEET_ID = "1QITJPV6C8Yn0xXA1aVMLrBx1mAMH2wSBBPghrjMb3YA";
-const DLY_CODE_GID = "0";
-
-// ICE限制表URL
-const ICE_SHEET_ID = "1gGQAWYogwxUDAB3fhByL-DbMn8AEzCtYoddHGUfOc2I";
-const ICE_GID = "1808923082";
 
 let currentMode = "memo";
-let dlyCodeData = null;
-let iceData = null;
 
-// 从 CONFIG.departments 读取 gid 并打开编辑页面
-function openSheet(deptKey) {
-    const gid = departments[deptKey].gid;
+// 直接打开 Google Sheets 编辑页面（新标签页）
+function openSheet(gid) {
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit?pli=1&gid=${gid}#gid=${gid}`;
     window.open(url, "_blank", "noopener,noreferrer");
 }
 
+// 跳转到独立页面（新标签页）
 function openPage(url) {
     window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -349,240 +228,6 @@ function printCurrent() {
     window.open(url, "_blank", "noopener,noreferrer");
 }
 
-// CSV解析函数
-function parseCSV(csvText) {
-    const lines = csvText.split('\n');
-    const result = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (line) {
-            const cells = [];
-            let currentCell = '';
-            let inQuotes = false;
-            
-            for (let j = 0; j < line.length; j++) {
-                const char = line[j];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    cells.push(currentCell.trim());
-                    currentCell = '';
-                } else {
-                    currentCell += char;
-                }
-            }
-            cells.push(currentCell.trim());
-            
-            result.push(cells);
-        }
-    }
-    
-    return result;
-}
-
-// 加载DLY CODE对照表
-async function loadDlyCodeData() {
-    if (dlyCodeData) return dlyCodeData;
-    
-    try {
-        const url = `https://docs.google.com/spreadsheets/d/${DLY_CODE_SHEET_ID}/export?format=csv&gid=${DLY_CODE_GID}`;
-        const response = await fetch(url);
-        const csvText = await response.text();
-        dlyCodeData = parseCSV(csvText);
-        return dlyCodeData;
-    } catch (error) {
-        console.error('DLY CODEデータの読み込みに失敗しました:', error);
-        return null;
-    }
-}
-
-// 加载ICE限制表
-async function loadIceData() {
-    if (iceData) return iceData;
-    
-    try {
-        const url = `https://docs.google.com/spreadsheets/d/${ICE_SHEET_ID}/export?format=csv&gid=${ICE_GID}`;
-        const response = await fetch(url);
-        const csvText = await response.text();
-        iceData = parseCSV(csvText);
-        return iceData;
-    } catch (error) {
-        console.error('ICEデータの読み込みに失敗しました:', error);
-        return null;
-    }
-}
-
-// 使用Google Visualization API读取单元格
-async function readCell(gid, cellRange) {
-    try {
-        const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?gid=${gid}&range=${cellRange}`;
-        const response = await fetch(url);
-        const text = await response.text();
-        
-        const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
-        if (!jsonMatch) {
-            console.error('レスポンスの解析に失敗しました');
-            return null;
-        }
-        
-        const json = JSON.parse(jsonMatch[1]);
-        
-        if (json.table && json.table.rows && json.table.rows.length > 0) {
-            const row = json.table.rows[0];
-            if (row.c && row.c.length > 0 && row.c[0]) {
-                return row.c[0].v || '';
-            }
-        }
-        
-        return '';
-    } catch (error) {
-        console.error(`セル ${cellRange} の読み込みに失敗しました:`, error);
-        return null;
-    }
-}
-
-// 自动读取E6和D5并查询
-async function autoQuery() {
-    const autoQueryBtn = document.getElementById('autoQueryBtn');
-    const resultDisplay = document.getElementById('resultDisplay');
-    
-    if (currentMode !== 'memo') {
-        resultDisplay.textContent = '📅 FLT HDLG MEMO(当日) モードでのみ利用可能です';
-        return;
-    }
-    
-    autoQueryBtn.disabled = true;
-    autoQueryBtn.textContent = '📥 読み込み中...';
-    resultDisplay.textContent = 'E6とD5セルを読み込んでいます...';
-    
-    try {
-        const e6Value = await readCell(modes.memo, 'E6');
-        const d5Value = await readCell(modes.memo, 'D5');
-        
-        if (e6Value === null || d5Value === null) {
-            resultDisplay.textContent = '❌ セルの読み込みに失敗しました。\n\n確認事項:\n1. Google Sheetsが「リンクを知っている全員が閲覧可能」に設定されているか\n2. ブラウザのコンソールでエラーを確認してください';
-            autoQueryBtn.disabled = false;
-            autoQueryBtn.textContent = '📥 自動読取＆検索';
-            return;
-        }
-        
-        document.getElementById('dlyCodeInput').value = e6Value;
-        document.getElementById('aircraftInput').value = d5Value;
-        
-        resultDisplay.textContent = `✅ 読み込み完了\nE6: ${e6Value}\nD5: ${d5Value}\n\n検索を実行します...`;
-        
-        await queryInfo();
-        
-    } catch (error) {
-        console.error('自動読み込みエラー:', error);
-        resultDisplay.textContent = '❌ エラーが発生しました: ' + error.message;
-    } finally {
-        autoQueryBtn.disabled = false;
-        autoQueryBtn.textContent = '📥 自動読取＆検索';
-    }
-}
-
-// 查询DLY CODE
-function queryDlyCode(code, data) {
-    if (!data || data.length < 2) return null;
-    
-    let twoCharCode = code;
-    if (code.length >= 4 && /^\d{2}[A-Z]{2}$/.test(code)) {
-        twoCharCode = code.substring(2);
-    }
-    
-    for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (row[1] && row[1].trim() === twoCharCode) {
-            return row[6] || '';
-        }
-    }
-    
-    return null;
-}
-
-// 查询ICE限制
-function queryIceLimit(aircraftCode, data) {
-    if (!data || data.length < 2) return null;
-    
-    for (let i = 1; i < data.length; i++) {
-        const row = data[i];
-        if (row[0] && row[0].trim() === aircraftCode) {
-            const aircraftType = row[1] || '';
-            const iceLimit = row[14] || '';
-            return { aircraftType, iceLimit };
-        }
-    }
-    
-    return null;
-}
-
-// 主查询函数
-async function queryInfo() {
-    const dlyCodeInput = document.getElementById('dlyCodeInput').value.trim();
-    const aircraftInput = document.getElementById('aircraftInput').value.trim();
-    const resultDisplay = document.getElementById('resultDisplay');
-    
-    let resultText = '';
-    
-    if (dlyCodeInput && dlyCodeInput !== '-' && dlyCodeInput !== '') {
-        resultDisplay.textContent = '検索中...';
-        
-        const dlyData = await loadDlyCodeData();
-        
-        if (dlyData) {
-            const codes = dlyCodeInput.split('/');
-            const explanations = [];
-            
-            for (const code of codes) {
-                const trimmedCode = code.trim();
-                if (trimmedCode && trimmedCode !== '-') {
-                    const explanation = queryDlyCode(trimmedCode, dlyData);
-                    if (explanation) {
-                        let twoCharCode = trimmedCode;
-                        if (trimmedCode.length >= 4 && /^\d{2}[A-Z]{2}$/.test(trimmedCode)) {
-                            twoCharCode = trimmedCode.substring(2);
-                        }
-                        explanations.push(`${twoCharCode}: ${explanation}`);
-                    }
-                }
-            }
-            
-            if (explanations.length > 0) {
-                resultText += '【遅延の理由】\n' + explanations.join('\n') + '\n\n';
-            } else {
-                resultText += '【遅延の理由】\n該当するデータが見つかりませんでした\n\n';
-            }
-        } else {
-            resultText += '【遅延の理由】\nデータの読み込みに失敗しました\n\n';
-        }
-    }
-    
-    if (aircraftInput) {
-        const iceDataResult = await loadIceData();
-        
-        if (iceDataResult) {
-            const iceInfo = queryIceLimit(aircraftInput, iceDataResult);
-            
-            if (iceInfo) {
-                resultText += `【ICE制限】\n${iceInfo.aircraftType} ICEの最大制限: ${iceInfo.iceLimit}kgs`;
-            } else {
-                resultText += '【ICE制限】\n該当する機材番号が見つかりませんでした';
-            }
-        } else {
-            resultText += '【ICE制限】\nデータの読み込みに失敗しました';
-        }
-    }
-    
-    if (!resultText) {
-        resultText = 'DLY CODEまたは機材番号を入力してください';
-    }
-    
-    resultDisplay.textContent = resultText;
-}
-
 window.onload = function() {
     const viewer = document.getElementById("viewer");
     const loading = document.getElementById("loading");
@@ -592,9 +237,6 @@ window.onload = function() {
     viewer.onload = function() {
         loading.style.display = "none";
     };
-    
-    loadDlyCodeData();
-    loadIceData();
 };
 </script>
 </body>
