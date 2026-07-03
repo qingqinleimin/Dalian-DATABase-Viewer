@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JAL Dalian-DATABase</title>
+<title>JAL - 入力ビューア</title>
 <script src="config.js"></script>
 <style>
 :root {
@@ -256,23 +256,23 @@ html, body {
 <body>
 <div class="container">
     <div class="sidebar">
-        <button onclick="openSheet('1023024767')">🧭 DLCSO入力</button>
-        <button onclick="openSheet('146794176')">📦 DLCFFU入力</button>
+        <button onclick="openSheet('so')">🧭 DLCSO入力</button>
+        <button onclick="openSheet('ffu')">📦 DLCFFU入力</button>
         <button onclick="openPage('pti_today.html')">🧳 DLCPTI当日入力</button>
         <button onclick="openPage('pti_next.html')">🧳 DLCPTI翌日入力</button>
-        <button onclick="openSheet('1797472086')">🛠️ DLCKKM入力</button>
-        <button onclick="openSheet('37366441')">👥 代表MGR入力</button>
+        <button onclick="openSheet('kkm')">🛠️ DLCKKM入力</button>
+        <button onclick="openSheet('mgr')">👥 代表MGR入力</button>
         
         <div class="info-section">
             <h3>🔍 情報検索</h3>
             <button class="auto-query-btn" id="autoQueryBtn" onclick="autoQuery()">📥 自動読取＆検索</button>
             
             <div class="input-group">
-                <label for="dlyCodeInput">DLY CODE:</label>
+                <label for="dlyCodeInput">DLY CODE (E6):</label>
                 <input type="text" id="dlyCodeInput" placeholder="例: 05AT/01AF">
             </div>
             <div class="input-group">
-                <label for="aircraftInput">機材番号:</label>
+                <label for="aircraftInput">機材番号 (D5):</label>
                 <input type="text" id="aircraftInput" placeholder="例: JA821J">
             </div>
             <button class="query-btn" onclick="queryInfo()">🔍 検索</button>
@@ -295,6 +295,7 @@ html, body {
 <script>
 const spreadsheetId = CONFIG.spreadsheetId;
 const modes = CONFIG.modes;
+const departments = CONFIG.departments;
 
 // DLY CODE对照表URL
 const DLY_CODE_SHEET_ID = "1QITJPV6C8Yn0xXA1aVMLrBx1mAMH2wSBBPghrjMb3YA";
@@ -308,7 +309,9 @@ let currentMode = "memo";
 let dlyCodeData = null;
 let iceData = null;
 
-function openSheet(gid) {
+// 从 CONFIG.departments 读取 gid 并打开编辑页面
+function openSheet(deptKey) {
+    const gid = departments[deptKey].gid;
     const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit?pli=1&gid=${gid}#gid=${gid}`;
     window.open(url, "_blank", "noopener,noreferrer");
 }
@@ -418,8 +421,6 @@ async function readCell(gid, cellRange) {
         const response = await fetch(url);
         const text = await response.text();
         
-        // 解析JSONP响应
-        // 格式: google.visualization.Query.setResponse({...})
         const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
         if (!jsonMatch) {
             console.error('レスポンスの解析に失敗しました');
@@ -447,7 +448,6 @@ async function autoQuery() {
     const autoQueryBtn = document.getElementById('autoQueryBtn');
     const resultDisplay = document.getElementById('resultDisplay');
     
-    // 只在memo模式下执行
     if (currentMode !== 'memo') {
         resultDisplay.textContent = '📅 FLT HDLG MEMO(当日) モードでのみ利用可能です';
         return;
@@ -458,7 +458,6 @@ async function autoQuery() {
     resultDisplay.textContent = 'E6とD5セルを読み込んでいます...';
     
     try {
-        // 读取E6和D5单元格
         const e6Value = await readCell(modes.memo, 'E6');
         const d5Value = await readCell(modes.memo, 'D5');
         
@@ -469,13 +468,11 @@ async function autoQuery() {
             return;
         }
         
-        // 填充到输入框
         document.getElementById('dlyCodeInput').value = e6Value;
         document.getElementById('aircraftInput').value = d5Value;
         
         resultDisplay.textContent = `✅ 読み込み完了\nE6: ${e6Value}\nD5: ${d5Value}\n\n検索を実行します...`;
         
-        // 自动执行查询
         await queryInfo();
         
     } catch (error) {
@@ -491,17 +488,15 @@ async function autoQuery() {
 function queryDlyCode(code, data) {
     if (!data || data.length < 2) return null;
     
-    // 提取二字码（去掉前两位数字）
     let twoCharCode = code;
     if (code.length >= 4 && /^\d{2}[A-Z]{2}$/.test(code)) {
         twoCharCode = code.substring(2);
     }
     
-    // 在B列查找二字码，返回G列的内容
     for (let i = 1; i < data.length; i++) {
         const row = data[i];
         if (row[1] && row[1].trim() === twoCharCode) {
-            return row[6] || ''; // G列（索引6）
+            return row[6] || '';
         }
     }
     
@@ -512,12 +507,11 @@ function queryDlyCode(code, data) {
 function queryIceLimit(aircraftCode, data) {
     if (!data || data.length < 2) return null;
     
-    // 在A列查找飞机号，返回B列（机型）和O列（ICE限制）
     for (let i = 1; i < data.length; i++) {
         const row = data[i];
         if (row[0] && row[0].trim() === aircraftCode) {
-            const aircraftType = row[1] || ''; // B列
-            const iceLimit = row[14] || ''; // O列（索引14）
+            const aircraftType = row[1] || '';
+            const iceLimit = row[14] || '';
             return { aircraftType, iceLimit };
         }
     }
@@ -533,14 +527,12 @@ async function queryInfo() {
     
     let resultText = '';
     
-    // 查询DLY CODE
     if (dlyCodeInput && dlyCodeInput !== '-' && dlyCodeInput !== '') {
         resultDisplay.textContent = '検索中...';
         
         const dlyData = await loadDlyCodeData();
         
         if (dlyData) {
-            // 处理多个代码（用/分隔）
             const codes = dlyCodeInput.split('/');
             const explanations = [];
             
@@ -549,7 +541,6 @@ async function queryInfo() {
                 if (trimmedCode && trimmedCode !== '-') {
                     const explanation = queryDlyCode(trimmedCode, dlyData);
                     if (explanation) {
-                        // 提取二字码
                         let twoCharCode = trimmedCode;
                         if (trimmedCode.length >= 4 && /^\d{2}[A-Z]{2}$/.test(trimmedCode)) {
                             twoCharCode = trimmedCode.substring(2);
@@ -569,7 +560,6 @@ async function queryInfo() {
         }
     }
     
-    // 查询ICE限制
     if (aircraftInput) {
         const iceDataResult = await loadIceData();
         
@@ -603,7 +593,6 @@ window.onload = function() {
         loading.style.display = "none";
     };
     
-    // 预加载数据
     loadDlyCodeData();
     loadIceData();
 };
