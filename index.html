@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JAL - 入力ビューア</title>
+<title>JAL Dalian-DATABase</title>
 <script src="config.js"></script>
 <style>
 :root {
@@ -265,7 +265,7 @@ html, body {
         
         <div class="info-section">
             <h3>🔍 情報検索</h3>
-            <button class="auto-query-btn" id="autoQueryBtn" onclick="autoQuery()">📥 E6/D5自動読取＆検索</button>
+            <button class="auto-query-btn" id="autoQueryBtn" onclick="autoQuery()">📥 自動読取＆検索</button>
             
             <div class="input-group">
                 <label for="dlyCodeInput">DLY CODE (E6):</label>
@@ -465,7 +465,7 @@ async function autoQuery() {
         if (e6Value === null || d5Value === null) {
             resultDisplay.textContent = '❌ セルの読み込みに失敗しました。\n\n確認事項:\n1. Google Sheetsが「リンクを知っている全員が閲覧可能」に設定されているか\n2. ブラウザのコンソールでエラーを確認してください';
             autoQueryBtn.disabled = false;
-            autoQueryBtn.textContent = '📥 E6/D5自動読取＆検索';
+            autoQueryBtn.textContent = '📥 自動読取＆検索';
             return;
         }
         
@@ -483,7 +483,7 @@ async function autoQuery() {
         resultDisplay.textContent = '❌ エラーが発生しました: ' + error.message;
     } finally {
         autoQueryBtn.disabled = false;
-        autoQueryBtn.textContent = '📥 E6/D5自動読取＆検索';
+        autoQueryBtn.textContent = '📥 自動読取＆検索';
     }
 }
 
